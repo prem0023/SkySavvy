@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Box, Container, Grid, Link, SvgIcon, Typography } from "@mui/material";
+import Button from "@mui/material/Button";
 import Search from "./components/Search/Search";
 import WeeklyForecast from "./components/WeeklyForecast/WeeklyForecast";
 import TodayWeather from "./components/TodayWeather/TodayWeather";
@@ -58,6 +59,67 @@ function App() {
     }
 
     setIsLoading(false);
+  };
+
+  const getLocation = () => {
+    getCurrentLocation()
+      .then(async (coordinates) => {
+        const label = await currentCity({
+          lat: coordinates.latitude,
+          lon: coordinates.longitude,
+        });
+        console.log("label " + label);
+        searchChangeHandler({
+          value: `${coordinates.latitude} ${coordinates.longitude}`,
+          label: label,
+        });
+        console.log("Latitude:", coordinates.latitude);
+        console.log("Longitude:", coordinates.longitude);
+      })
+      .catch((error) => {
+        console.error("Error getting current location:", error.message);
+      });
+  };
+
+  const getCurrentLocation = () => {
+    return new Promise((resolve, reject) => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            resolve({ latitude, longitude });
+          },
+          (error) => {
+            reject(error);
+          }
+        );
+      } else {
+        reject(new Error("Geolocation is not supported by this browser."));
+      }
+    });
+  };
+
+  const currentCity = (location) => {
+    return new Promise((resolve, reject) => {
+      fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=30d4590538591f84f57db7e84220e6e4`
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch weather data");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          const label = `${data?.name}, ${data?.sys.country}`;
+          resolve(label);
+        })
+        .catch((error) => {
+          console.error("Error getting current city:", error);
+          reject(error);
+        });
+    });
   };
 
   let appContent = (
@@ -207,6 +269,13 @@ function App() {
             </Link>
           </Box>
           <Search onSearchChange={searchChangeHandler} />
+          <Button
+            sx={{ margin: "10px 0px" }}
+            variant="contained"
+            onClick={getLocation}
+          >
+            Locate Me
+          </Button>
         </Grid>
         {appContent}
       </Grid>
