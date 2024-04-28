@@ -218,7 +218,7 @@ function App() {
         maxWidth: { xs: "95%", sm: "80%", md: "1100px" },
         width: "100%",
         height: "100%",
-        margin: "0 auto",
+        margin: "30px auto",
         padding: "1rem 0 3rem",
         marginBottom: "1rem",
         borderRadius: {
